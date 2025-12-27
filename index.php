@@ -1,2 +1,1 @@
-<?php 
-// Silence is golden.
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>SNN</title><meta name="robots" content="noindex, nofollow" /></head><body></body></html>
