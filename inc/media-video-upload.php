@@ -49,7 +49,7 @@ function vup_render_upload_page() {
 
     <style>
         .vup-upload-container {
-            max-width: 900px;
+            max-width: 100%;
             margin: 20px 0;
         }
         .vup-upload-area {
