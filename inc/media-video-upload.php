@@ -55,7 +55,7 @@ function vup_render_upload_page() {
         .vup-upload-area {
             border: 2px dashed #c3c4c7;
             border-radius: 4px;
-            padding: 60px 40px;
+            padding: 30px 20px;
             text-align: center;
             background: #fff;
             transition: all 0.3s;
@@ -65,39 +65,40 @@ function vup_render_upload_page() {
             background: #f0f6fc;
         }
         .vup-upload-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
+            font-size: 40px;
+            margin-bottom: 10px;
             opacity: 0.6;
         }
         .vup-upload-area h2 {
-            margin: 0 0 10px 0;
+            margin: 0 0 5px 0;
             color: #1d2327;
-            font-size: 18px;
+            font-size: 16px;
         }
         .vup-upload-area p {
             color: #646970;
-            margin: 0 0 20px 0;
+            margin: 0 0 10px 0;
+            font-size: 13px;
         }
         #vupQueueContainer {
-            margin-top: 30px;
+            margin-top: 15px;
         }
         #vupQueueContainer h2 {
             color: #1d2327;
-            font-size: 18px;
-            margin-bottom: 15px;
+            font-size: 16px;
+            margin-bottom: 8px;
         }
         .vup-file-item {
             background: #fff;
             border: 1px solid #c3c4c7;
-            border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 12px;
+            border-radius: 3px;
+            padding: 8px 10px;
+            margin-bottom: 6px;
         }
         .vup-file-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
         }
         .vup-file-name {
             font-weight: 600;
@@ -106,18 +107,19 @@ function vup_render_upload_page() {
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            margin-right: 15px;
+            margin-right: 10px;
+            font-size: 13px;
         }
         .vup-file-size {
             color: #646970;
-            font-size: 13px;
+            font-size: 12px;
         }
         .vup-progress-bar {
-            height: 8px;
+            height: 4px;
             background: #f0f0f1;
-            border-radius: 4px;
+            border-radius: 2px;
             overflow: hidden;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
         .vup-progress-fill {
             height: 100%;
@@ -127,16 +129,17 @@ function vup_render_upload_page() {
         .vup-file-stats {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
+            align-items: center;
+            font-size: 12px;
             color: #646970;
         }
         .vup-status {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
         }
         .vup-status-icon {
-            font-size: 16px;
+            font-size: 14px;
         }
         .vup-status.success {
             color: #00a32a;
@@ -146,6 +149,27 @@ function vup_render_upload_page() {
         }
         .vup-status.uploading {
             color: #2271b1;
+        }
+        .vup-copy-btn {
+            padding: 2px 8px;
+            font-size: 11px;
+            line-height: 1.4;
+            cursor: pointer;
+            background: #f0f0f1;
+            border: 1px solid #c3c4c7;
+            border-radius: 3px;
+            color: #2271b1;
+            transition: all 0.2s;
+        }
+        .vup-copy-btn:hover {
+            background: #2271b1;
+            color: #fff;
+            border-color: #2271b1;
+        }
+        .vup-copy-btn.copied {
+            background: #00a32a;
+            color: #fff;
+            border-color: #00a32a;
         }
     </style>
 
@@ -223,7 +247,7 @@ function vup_render_upload_page() {
         function addFileToUI(fileItem) {
             const fileSize = formatFileSize(fileItem.file.size);
             const html = `
-                <div class="vup-file-item" id="${fileItem.id}">
+                <div class="vup-file-item" id="${fileItem.id}" data-url="">
                     <div class="vup-file-header">
                         <div class="vup-file-name">${escapeHtml(fileItem.file.name)}</div>
                         <div class="vup-file-size">${fileSize}</div>
@@ -302,7 +326,7 @@ function vup_render_upload_page() {
                 },
                 success: function(response) {
                     if (response.success) {
-                        updateFileStatus(fileItem.id, 'success', '✓', 'Upload complete!');
+                        updateFileStatus(fileItem.id, 'success', '✓', 'Upload complete!', response.data.url);
                     } else {
                         updateFileStatus(fileItem.id, 'error', '✗', response.data || 'Upload failed');
                     }
@@ -329,7 +353,7 @@ function vup_render_upload_page() {
         }
 
         // Update file status
-        function updateFileStatus(fileId, status, icon, text) {
+        function updateFileStatus(fileId, status, icon, text, url) {
             const item = $('#' + fileId);
             const statusEl = item.find('.vup-status');
             statusEl.removeClass('success error uploading').addClass(status);
@@ -338,7 +362,22 @@ function vup_render_upload_page() {
             
             if (status === 'success') {
                 item.find('.vup-progress-fill').css('width', '100%');
-                item.find('.vup-stats-text').text('Complete');
+                item.attr('data-url', url);
+                // Add copy button
+                const copyBtn = $('<button class="vup-copy-btn" data-url="' + url + '">Copy URL</button>');
+                copyBtn.on('click', function() {
+                    const btn = $(this);
+                    const urlToCopy = btn.attr('data-url');
+                    navigator.clipboard.writeText(urlToCopy).then(function() {
+                        btn.addClass('copied').text('Copied!');
+                        setTimeout(function() {
+                            btn.removeClass('copied').text('Copy URL');
+                        }, 2000);
+                    }).catch(function() {
+                        alert('Failed to copy URL');
+                    });
+                });
+                item.find('.vup-stats-text').html(copyBtn);
             }
         }
 
